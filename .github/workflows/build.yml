@@ -16,7 +16,14 @@ jobs:
       shell: pwsh
       run: |
         Invoke-WebRequest https://auls.client.jp/plugin/auls_memref.zip -OutFile auls_memref.zip
-        Expand-Archive -LiteralPath auls_memref.zip -DestinationPath auls_memref
+
+    - name: Extract Archive
+      shell: pwsh
+      run: |
+        $src = '${{ github.workspace }}/auls_memref.zip'
+        $dst = '${{ github.workspace }}/auls_memref'
+        $enc = [System.Text.Encoding]::GetEncoding(932)
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($src, $dst, $enc)
 
     - name: Check hash
       shell: pwsh
@@ -76,4 +83,4 @@ jobs:
         $ReleaseName = '${{ steps.set-name.outputs.Name }}'
         $TagName = '${{ steps.set-name.outputs.Name }}'
         cd repo
-        gh release create `"$TagName`" ../artifacts/auls_memref.zip --title `"$ReleaseName`"
+        gh release create "$TagName" ../artifacts/auls_memref.zip --title "$ReleaseName"
