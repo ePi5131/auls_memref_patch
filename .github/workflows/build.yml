@@ -3,6 +3,10 @@ name: build
 on:
   push:
 
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,12 +17,10 @@ jobs:
         path: repo
 
     - name: Download auls_memref
-      shell: pwsh
       run: |
         Invoke-WebRequest https://auls.client.jp/plugin/auls_memref.zip -OutFile auls_memref.zip
 
     - name: Extract Archive
-      shell: pwsh
       run: |
         $src = '${{ github.workspace }}/auls_memref.zip'
         $dst = '${{ github.workspace }}/auls_memref'
@@ -26,22 +28,18 @@ jobs:
         [System.IO.Compression.ZipFile]::ExtractToDirectory($src, $dst, $enc)
 
     - name: Check hash
-      shell: pwsh
       run: |
         & repo/patch.ps1 check auls_memref/auls_memref/auls_memref.auf
 
     - name: Apply patch
-      shell: pwsh
       run: |
         & repo/patch.ps1 apply auls_memref/auls_memref/auls_memref.auf
 
     - name: Copy information
-      shell: pwsh
       run: |
         Copy-Item -LiteralPath repo/patch.txt -Destination auls_memref/auls_memref
        
     - name: Create Archive
-      shell: pwsh
       run: |
         mkdir pub
         Compress-Archive -LiteralPath auls_memref/auls_memref -DestinationPath pub/auls_memref.zip
@@ -70,7 +68,6 @@ jobs:
 
     - name: Set Name
       id: set-name
-      shell: pwsh
       run: |
         $t = Get-Date -AsUTC -Format "yyyy-MM-dd_HH-mm"
         "Name=$t" >> $env:GITHUB_OUTPUT
@@ -78,7 +75,6 @@ jobs:
     - name: Create release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: pwsh
       run: |
         $ReleaseName = '${{ steps.set-name.outputs.Name }}'
         $TagName = '${{ steps.set-name.outputs.Name }}'
